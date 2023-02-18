@@ -201,7 +201,7 @@ def newmine_strategy(bots, params):
                 terraSquares.remove(bestLoc)
                 # Route to this square
                 dir, steps = game_state.optimal_path(bot.row, bot.col, bestLoc[0], bestLoc[1])
-                print(bot, dir, steps)
+                # print(bot, dir, steps)
                 if steps <= 0:
                     # sadge
                     pass
@@ -529,7 +529,6 @@ def explore(game_state: GameState, bot_list, param_dict):
     exp_name = explorer.name
     exp_row = explorer.row
     exp_col = explorer.col
-    # print('calling explore. explorer at', exp_row, ',', exp_col)
 
     # CHECK IF EXPLORER IS ALONE
     if len(bot_list) == 1:
@@ -538,7 +537,8 @@ def explore(game_state: GameState, bot_list, param_dict):
         terraformer_exists = True
     if explorer.battery < 10:
         dir_to_base = game_state.robot_to_base(exp_name, checkCollisions=True)[0]
-        game_state.move_robot(exp_name, dir_to_base)
+        if game_state.can_move_robot(exp_name, dir_to_base):
+            game_state.move_robot(exp_name, dir_to_base)
 
     # GET TERRAFORMER INFO (if exists)
     if terraformer_exists:
@@ -595,7 +595,8 @@ def explore(game_state: GameState, bot_list, param_dict):
     if game_state.can_robot_action(exp_name):
         game_state.robot_action(exp_name)
     if terraformer_exists:
-        if (terraformer.battery <= 30 or explorer.battery <= 10) and game_state.can_robot_action(terr_name):
+        # if (terraformer.battery <= 30 or explorer.battery <= 10) and game_state.can_robot_action(terr_name):
+        if game_state.can_robot_action(terr_name):
             game_state.robot_action(terr_name) 
 
 def find_fog(game_state, bot_row, bot_col):
@@ -613,7 +614,8 @@ def find_fog(game_state, bot_row, bot_col):
         adjacents, _ = get_adj_tiles(tile, game_state)
         for adj in adjacents:
             if adj in unknown_tiles:
-                dist = max(abs(bot_row - tile[0]), abs(bot_col - tile[1]))
+                # dist = max(abs(bot_row - tile[0]), abs(bot_col - tile[1]))
+                dist = score_tile(game_state, bot_row, bot_col, tile[0], tile[1])
                 # print(tile, adj, dist)
                 if game_state.get_str_map()[tile[0]][tile[1]] == 'I':
                     continue
@@ -624,6 +626,26 @@ def find_fog(game_state, bot_row, bot_col):
     best_dir = game_state.optimal_path(
         bot_row, bot_col, best_tile[0], best_tile[1], checkCollisions=True)[0]
     return best_tile, best_dir, min_dist
+
+def score_tile(game_state, bot_row, bot_col, tile_row, tile_col):
+    penalty_multiplier = .01
+    dist = max(abs(bot_row - tile_row), abs(bot_col - tile_col))
+    penalty_squared_sum = 0
+    ally_robots = game_state.get_ally_robots()
+    # explorers = [robot for robot in ally_robots if robot.type == RobotType.EXPLORER]
+    explorers = []
+    for robot_name in ally_robots:
+        robot = ally_robots[robot_name]
+        if robot.type == RobotType.EXPLORER:
+            explorers.append(robot)
+    for explorer in explorers:
+        if explorer.row == bot_row and explorer.col == bot_col:
+            continue
+        explorer_dist = max(abs(explorer.row - bot_row), abs(explorer.col - bot_col))
+        squared_dist = explorer_dist ** 2
+        penalty_squared_sum += squared_dist
+    score = dist - penalty_multiplier * penalty_squared_sum
+    return score
                 
 
 def get_adj_tiles(tile, game_state):
