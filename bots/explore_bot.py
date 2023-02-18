@@ -514,6 +514,10 @@ def destroy(game_state: GameState, bot_list, param_dict):
 
         if dest_tile.robot is None or dest_tile.robot.team != bot.team:
             game_state.move_robot(rname, best_dir)
+            
+'''
+START EXPLORE FUNCTIONALITY FROM HERE DOWN
+'''
 
 def explore(game_state: GameState, bot_list, param_dict):
     game_info = game_state.get_info()
@@ -630,7 +634,7 @@ def find_fog(game_state, bot_row, bot_col):
     return best_tile, best_dir, min_dist
 
 def score_tile(game_state, bot_row, bot_col, tile_row, tile_col):
-    penalty_multiplier = .01
+    penalty_multiplier = .05
     dist = max(abs(bot_row - tile_row), abs(bot_col - tile_col))
     penalty_squared_sum = 0
     ally_robots = game_state.get_ally_robots()
