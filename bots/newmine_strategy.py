@@ -29,21 +29,6 @@ def newmine_strategy(bots, params):
         else:
             assert(0 and "oldmine_strategy cannot handle EXPLORER bots")
 
-    for botName, bot in tired_bots:
-        if bot.row == mine_loc[0] and bot.col == mine_loc[1]:
-            # Get this bot off the mineral location immediately
-            for dir in Direction:
-                if game_state.can_move_robot(botName, dir) and noCollision(bot, dir):
-                    game_state.move_robot(botName, dir)
-                    break
-        else: # normal scheduling
-            dir, steps = game_state.robot_to_base(botName)
-            if steps <= 0:
-                pass # sadge... do nothing
-            else:
-                if game_state.can_move_robot(botName, dir) and noCollision(bot, dir):
-                    game_state.move_robot(botName, dir)
-
     # Route the mine bots so that at least one is mining each turn
     hasMiner = False
     for botName, bot in fueled_mine_bots:
@@ -110,6 +95,21 @@ def newmine_strategy(bots, params):
                 else: # move closer to the mine
                     game_state.move_robot(botName, dir)
 
+    for botName, bot in tired_bots:
+        if bot.row == mine_loc[0] and bot.col == mine_loc[1]:
+            # Get this bot off the mineral location immediately
+            for dir in Direction:
+                if game_state.can_move_robot(botName, dir) and noCollision(bot, dir):
+                    game_state.move_robot(botName, dir)
+                    break
+        else: # normal scheduling
+            dir, steps = game_state.robot_to_base(botName)
+            if steps <= 0:
+                pass # sadge... do nothing
+            else:
+                if (game_state.can_move_robot(botName, dir) and noCollision(bot, dir)
+                    and map[bot.row + dir.value[0]][bot.col + dir.value[1]].state != TileState.MINING):
+                    game_state.move_robot(botName, dir)
 
 
 

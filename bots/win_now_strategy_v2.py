@@ -70,7 +70,8 @@ def win_now_strategy(bots, params):
 
         for bot, dir in botsToMove:
             if (game_state.can_move_robot(bot.name, dir)
-                and noCollisions(bot, dir)):
+                and noCollisions(bot, dir)
+                and game_state.get_map()[bot.row + dir.value[0]][bot.col + dir.value[1]].state != TileState.MINING):
                 game_state.move_robot(bot.name, dir)
                 if (game_state.can_robot_action(bot.name)):
                     game_state.robot_action(bot.name)
