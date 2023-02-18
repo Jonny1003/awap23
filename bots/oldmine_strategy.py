@@ -12,9 +12,9 @@ def oldmine_strategy(bots, params):
     game_state = params.get('game_state')
     mine_loc = params.get('mine_location')
     def noCollision(rob, dir):
-        dest_loc = (rob.row + dir[0], rob.col + dir[1])
+        dest_loc = (rob.row + dir.value[0], rob.col + dir.value[1])
         dest_tile = game_state.get_map()[dest_loc[0]][dest_loc[1]]
-        return dest_tile.robot is None
+        return dest_tile != None and dest_tile.robot is None
 
     assert(len(mine_loc) == 2)
 
@@ -27,13 +27,14 @@ def oldmine_strategy(bots, params):
             terra_bots.append(bot)
         else:
             assert(0 and "oldmine_strategy cannot handle EXPLORER bots")
+    print(len(mine_bots))
 
     # Ensure one mine bot is on the mine
     amtBattery = -1
     bestBotName = "fake"
     bestBot = None
     for botName, bot in mine_bots:
-        if game_state.can_robot_action(botName) and bot.battery > amtBattery:
+        if bot.battery > amtBattery:
             amtBattery = bot.battery
             bestBotName = botName
             bestBot = bot
@@ -43,26 +44,32 @@ def oldmine_strategy(bots, params):
             if steps == 0:
                 pass # bot can rest
             elif steps < 0:
-                assert(0 and f"miner bot cannot get to base")
+                pass # TODO:temporary
+                # assert(0 and f"miner bot cannot get to base")
             else:
                 # move bot to base to recharge (steps should be 1)
-                assert(steps == 1) # probably true...
+                # assert(steps == 1) # probably true... # TODO: temporary
                 if (game_state.can_move_robot(botName, dir)):
                     game_state.move_robot(botName, dir)
 
     if bestBot != None:
+        print(bestBot)
         # Have bot do action
         dir, steps = game_state.optimal_path(bestBot.row, bestBot.col, mine_loc[0], mine_loc[1])
         if steps == 0:
-            game_state.robot_action(bestBotName)
+            if game_state.can_robot_action(bestBotName):
+                game_state.robot_action(bestBotName)
         elif steps < 0:
             assert(0 and f"cannot mine row {mine_loc[0]} col {mine_loc[1]}")
         else:
             assert(game_state.can_move_robot(bestBotName, dir)) # TODO: remove later
             game_state.move_robot(bestBotName, dir)
-            game_state.robot_action(bestBotName)
+            if game_state.can_robot_action(bestBotName):
+                game_state.robot_action(bestBotName)
     else:
-        assert(0 and f"no bot is available to mine")
+        # TODO: temporary
+        # assert(0 and f"no bot is available to mine")
+        pass
 
     # Move terra bots somewhere useful
     map = game_state.get_map()
@@ -75,9 +82,12 @@ def oldmine_strategy(bots, params):
                 for dir in Direction:
                     if (game_state.can_move_robot(botName, dir)
                         and noCollision(bot, dir)
-                        and map[bot.row + dir[0]][bot.col + dir[1]].terraform < 2):
+                        and map[bot.row + dir.value[0]][bot.col + dir.value[1]].mining == 0
+                        and map[bot.row + dir.value[0]][bot.col + dir.value[1]].terraform < 2):
                         game_state.move_robot(botName, dir)
-                        game_state.robot_action(botName)
+                        if (game_state.can_robot_action(botName)):
+                            game_state.robot_action(botName)
+                # Do nothing if cannot find nearby tile to work on...
         else:
             dir, steps = game_state.robot_to_base(botName)
             if steps == 0:
