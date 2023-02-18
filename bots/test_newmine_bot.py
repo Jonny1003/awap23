@@ -43,17 +43,19 @@ class BotPlayer(Player):
                     if tile.mining:
                         mine_tiles.append((row, col))
 
-        if len(mine_tiles) and len(game_state.get_ally_robots()) > 2:
-            params = {
-                "game_state" : game_state,
-                "mine_location" : mine_tiles[0],
-            }
+        if len(mine_tiles) and len(game_state.get_ally_robots()) > 6:
             print(f"My metal {game_state.get_metal()}")
             bots = []
             for rname, rob in game_state.get_ally_robots().items():
                 if rob.type != RobotType.EXPLORER:
                     bots.append(rob)
-            newmine_strategy(bots, params)
+            num = min(len(mine_tiles), int(len(bots) / 2))
+            for i in range(num):
+                params = {
+                    "game_state" : game_state,
+                    "mine_location" : mine_tiles[i],
+                }
+                newmine_strategy([bots[2 * i], bots[2 * i + 1]], params)
         else:
 
             print("Ally tiles", ally_tiles)
@@ -64,7 +66,7 @@ class BotPlayer(Player):
                 # pick a random one to spawn on
                 spawn_loc = random.choice(ally_tiles)
                 spawn_type = random.choice([RobotType.MINER])
-                if len(game_state.get_ally_robots()) > 1:
+                if len(game_state.get_ally_robots()) > 5:
                     spawn_type = RobotType.TERRAFORMER
                 # spawn the robot
                 print(f"Spawning robot at {spawn_loc.row, spawn_loc.col}")

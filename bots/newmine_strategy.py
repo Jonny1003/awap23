@@ -91,7 +91,7 @@ def newmine_strategy(bots, params):
                 terraSquares.remove(bestLoc)
                 # Route to this square
                 dir, steps = game_state.optimal_path(bot.row, bot.col, bestLoc[0], bestLoc[1])
-                print(bot, dir, steps)
+                # print(bot, dir, steps)
                 if steps <= 0:
                     # sadge
                     pass

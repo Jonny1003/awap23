@@ -59,7 +59,7 @@ def win_now_strategy(bots, params):
                             if game_state.can_robot_action(bot.name):
                                 game_state.robot_action(bot.name)
                             idealPath = True
-                        break
+                            break
                     for i in range(-1, 2):
                         for j in range(-1, 2):
                             newRC = (r+i, c+j)
