@@ -48,16 +48,19 @@ def win_now_strategy(bots, params):
                             and tile.terraform > 0):
                             # Locally found a place to recharge
                             dir = d
+                        elif myTile.state == TileState.MINING:
+                            # Remove a bot from mine if possible
+                            dir = d
                         elif (bot.battery >= bot.action_cost):
                             if (tile.terraform <= 0
                                 and tile.terraform >= bestNegTerra
-                                and ((myTile.terraform <= 0 and tile.terraform > myTile.terraform) or myTile.terraform > 0)):
+                                and ((myTile.terraform <= 0 and tile.terraform >= myTile.terraform) or myTile.terraform > 0)):
                                 dir = d
                                 bestNegTerra = tile.terraform
                                 positive = False
                             if (positive and tile.terraform > 0
                                 and tile.terraform <= bestPosTerra
-                                and tile.terraform < myTile.terraform):
+                                and tile.terraform <= myTile.terraform):
                                 dir = d
                                 bestPosTerra = tile.terraform
             if dir is not None:
