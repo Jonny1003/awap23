@@ -535,9 +535,11 @@ def explore(game_state: GameState, bot_list, param_dict):
         terraformer_exists = False
     else:
         terraformer_exists = True
+    
+    # Check if explorer needs to recharge
     if explorer.battery < 10:
         dir_to_base = game_state.robot_to_base(exp_name, checkCollisions=True)[0]
-        if game_state.can_move_robot(exp_name, dir_to_base):
+        if dir_to_base is not None and game_state.can_move_robot(exp_name, dir_to_base):
             game_state.move_robot(exp_name, dir_to_base)
 
     # GET TERRAFORMER INFO (if exists)
