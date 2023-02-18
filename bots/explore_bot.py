@@ -3,7 +3,7 @@ from src.game_state import GameState, GameInfo
 from src.player import Player
 from src.map import TileInfo, RobotInfo
 
-import random
+import random, time
 import numpy as np
 from collections import deque
 
@@ -14,6 +14,7 @@ class BotPlayer(Player):
 
     def __init__(self, team: Team):
         self.team = team
+        self.explore_params = {'fog_frontier':set(), 'first_fog_frontier':True}
         return
 
     def play_turn(self, game_state: GameState) -> None:
@@ -23,16 +24,16 @@ class BotPlayer(Player):
         # if turn > 30:
         #     return
         strategies = decider(game_state)
-        # print("\n\nListing Strategies:\n")
+        # # print("\n\nListing Strategies:\n")
         for strategy in strategies:
-            # print(strategy)
-            # print()
+            # # print(strategy)
+            # # print()
             name, units, target = strategy
             if name == "Explore":
                 if len(units) == 2:
                     if units[0].type != RobotType.EXPLORER:
                         units = [units[1], units[0]]
-                explore(game_state, units, target)
+                explore(game_state, units, self.explore_params)
             elif name == "Approaching Scout":
                 destroy(game_state, units, target)
             elif name == "New Mine":
@@ -94,7 +95,7 @@ def win_now_strategy(bots, params):
                             # Sadge...
                             pass
                         else:
-                            # print("here")
+                            # # print("here")
                             game_state.move_robot(bot.name, dir)
                             if game_state.can_robot_action(bot.name):
                                 game_state.robot_action(bot.name)
@@ -107,11 +108,11 @@ def win_now_strategy(bots, params):
                                 seen.add(newRC)
                                 queue.append(newRC)
             if not idealPath:
-                # print("ending")
+                # # print("ending")
 
                 # Make a random legal move
                 for dir in Direction:
-                    # print(bot, dir)
+                    # # print(bot, dir)
                     if game_state.can_move_robot(bot.name, dir) and noCollisions(bot, dir):
                         game_state.move_robot(bot.name, dir)
                         break
@@ -153,7 +154,7 @@ def newmine_strategy(bots, params):
         if game_state.can_robot_action(botName):
             game_state.robot_action(botName)
             hasMiner = True
-            # print("Mining", bot)
+            # # print("Mining", bot)
         else:
             dir, steps = game_state.optimal_path(
                 bot.row, bot.col, mine_loc[0], mine_loc[1])
@@ -175,7 +176,7 @@ def newmine_strategy(bots, params):
     # Route these bots around the mine location
     aroundMine = [(mine_loc[0] + d.value[0], mine_loc[1] + d.value[1]) for d in Direction]
     terraSquares = []
-    # print(aroundMine)
+    # # print(aroundMine)
     # Filter out only locations that we may want to move to
     for loc in aroundMine:
         if 0 <= loc[0] and loc[0] < len(map) and 0 <= loc[1] and loc[1] < len(map[0]):
@@ -183,8 +184,8 @@ def newmine_strategy(bots, params):
             if tile != None and tile.terraform < 2 and tile.robot is None and tile.state != TileState.IMPASSABLE:
                 terraSquares.append(loc)
     for botName, bot in fueled_terra_bots:
-        # print(loc[0], loc[1])
-        # print(map[bot.row][bot.col].terraform)
+        # # print(loc[0], loc[1])
+        # # print(map[bot.row][bot.col].terraform)
         if (bot.row, bot.col) in aroundMine and map[bot.row][bot.col].terraform < 2:
             # stay on square
             if game_state.can_robot_action(botName):
@@ -201,7 +202,7 @@ def newmine_strategy(bots, params):
                 terraSquares.remove(bestLoc)
                 # Route to this square
                 dir, steps = game_state.optimal_path(bot.row, bot.col, bestLoc[0], bestLoc[1])
-                # print(bot, dir, steps)
+                # # print(bot, dir, steps)
                 if steps <= 0:
                     # sadge
                     pass
@@ -224,7 +225,7 @@ def get_adj_tiles(tile, game_state):
         if (0 <= new_tile[0] < width) and (0 <= new_tile[1] < height):
             dest_locs.append(new_tile)
             valid_dirs.append(move_dir)
-    # print(tile, dest_locs)
+    # # print(tile, dest_locs)
     return dest_locs, valid_dirs
 
 def get_closest_spawn(target, ally_tiles):
@@ -300,7 +301,7 @@ def evaluate_use(objective, cur_assigned, new_rob, ally_tiles):
         else:
             return -1, new_rob
     elif obj_type == "Explore":
-        # print(cur_assigned)
+        # # print(cur_assigned)
         assigned_terras = 0
         assigned_exps = 0
         for rob in cur_assigned:
@@ -352,7 +353,7 @@ def evaluate_use(objective, cur_assigned, new_rob, ally_tiles):
 def produce_now(game_state, best_robot):
     spawn_type, spawn_loc_row, spawn_loc_col = best_robot
     if game_state.can_spawn_robot(spawn_type, spawn_loc_row, spawn_loc_col):
-        # print(f"Producing {spawn_type, spawn_loc_row, spawn_loc_col}")
+        # # print(f"Producing {spawn_type, spawn_loc_row, spawn_loc_col}")
         return game_state.spawn_robot(spawn_type, spawn_loc_row, spawn_loc_col) 
 
 def decider(game_state):
@@ -448,16 +449,16 @@ def decider(game_state):
 
     # Now, assign units to assignments
     objectives.sort(key=lambda x: -x[2])
-    # print(f"\nCurrent Objectives under consideration:")
+    # # print(f"\nCurrent Objectives under consideration:")
     # for o in objectives:
-    #     print("    ",o)
+    #     # print("    ",o)
     total_metal = game_state.get_metal()
-    # print(F"Ally tiles: {ally_tiles}")
+    # # print(F"Ally tiles: {ally_tiles}")
     can_produce = min(len(ally_tiles), total_metal // 50)
-    # print("Available Robots:")
-    # print(a_robots)
+    # # print("Available Robots:")
+    # # print(a_robots)
     available_robots = list(a_robots.values())
-    # print(available_robots)
+    # # print(available_robots)
     assignments = [[] for _ in objectives]
     # If this is way to slow, here is a speedup
     # - Keep a standing 2D matrix of scores for each objective/unit combo
@@ -466,8 +467,8 @@ def decider(game_state):
     while (len(available_robots) + can_produce) > 0:
         high_score = -np.inf
         best_robot, best_assignment = None, None
-        # print("", end = "    ")
-        # print((available_robots + (["New Robot"] if can_produce else [])))
+        # # print("", end = "    ")
+        # # print((available_robots + (["New Robot"] if can_produce else [])))
         for robot in (available_robots + (["New Robot"] if can_produce else [])):
             for i, objective in enumerate(objectives):
                 score, new_bot = evaluate_use(objective, assignments[i], robot, ally_tiles)
@@ -476,16 +477,16 @@ def decider(game_state):
                     best_robot = new_bot
                     best_assignment = i
 
-        # print(best_robot)
-        # print(objectives[best_assignment])
-        # print()
+        # # print(best_robot)
+        # # print(objectives[best_assignment])
+        # # print()
 
         if type(best_robot) == list:
             can_produce -= 1
             best_robot = produce_now(game_state, best_robot)
             tile = ginfo.map[best_robot.row][best_robot.col]
             ally_tiles.remove(tile)
-            # print(best_robot)
+            # # print(best_robot)
         else:
             available_robots.remove(best_robot)
         assignments[best_assignment].append(best_robot)
@@ -520,12 +521,18 @@ START EXPLORE FUNCTIONALITY FROM HERE DOWN
 '''
 
 def explore(game_state: GameState, bot_list, param_dict):
+    start = time.time()
     game_info = game_state.get_info()
     ally_robots = game_state.get_ally_robots()
     enemy_robots = game_state.get_enemy_robots()
     strmap = game_state.get_str_map()
     # adjacent_fog = self.find_fog(strmap, (bot_list[0].row, bot_list[0].col))
-    adjacent_fog, exp_dir, exp_dist = find_fog(game_state, bot_list[0].row, bot_list[0].col)
+    fog_frontier = param_dict['fog_frontier']
+    first_fog_frontier = param_dict['first_fog_frontier']
+    if (first_fog_frontier):
+        param_dict['fog_frontier'] = get_explored_unexplored(game_state)[0]
+        param_dict['first_fog_frontier'] = False
+    adjacent_fog, exp_dir, exp_dist = find_fog(game_state, bot_list[0].row, bot_list[0].col, fog_frontier)
 
     # GET EXPLORER INFO
     explorer = bot_list[0]
@@ -549,7 +556,7 @@ def explore(game_state: GameState, bot_list, param_dict):
     # GET TERRAFORMER INFO (if exists)
     if terraformer_exists:
         terraformer = bot_list[1]
-        # print('terraformer', terraformer)
+        # # print('terraformer', terraformer)
         assert(terraformer.type == RobotType.TERRAFORMER)
         terr_name = terraformer.name
         terr_row = terraformer.row
@@ -569,7 +576,7 @@ def explore(game_state: GameState, bot_list, param_dict):
 
     # MOVE TERRAFORMER (if exists)
     if terraformer_exists:
-        if terraformer.battery < 20:
+        if terraformer.battery < terraformer.action_cost:
             dir_to_base = game_state.robot_to_base(terr_name, checkCollisions=True)[0]
             game_state.move_robot(terr_name, dir_to_base)
         else:
@@ -598,40 +605,86 @@ def explore(game_state: GameState, bot_list, param_dict):
                         game_state.move_robot(terr_name, terr_opt_dir)
 
     # TAKE ACTIONS
+    # # print(explorer)
     if game_state.can_robot_action(exp_name):
         game_state.robot_action(exp_name)
+        explorer_adjacents = get_adj_tiles((explorer.row, explorer.col), game_state)[0]
+        for adj in explorer_adjacents:
+            # print("adj", adj)
+            if check_is_fog_frontier(game_state, adj):
+                # print("Success->", fog_frontier)
+                fog_frontier.add(adj)
+            else:
+                # print("End->", fog_frontier)
+                fog_frontier.discard(adj)
+                    
     if terraformer_exists:
         # if (terraformer.battery <= 30 or explorer.battery <= 10) and game_state.can_robot_action(terr_name):
         if game_state.can_robot_action(terr_name):
             game_state.robot_action(terr_name) 
+    # print('full explore time', time.time() - start)
 
-def find_fog(game_state, bot_row, bot_col):
-    # print(f"Looking at bot on {bot_row, bot_col}")
+def check_is_fog_frontier(game_state, tile):
+    # # print("this thing", game_state.get_map()[tile[0]][tile[1]])
+    if game_state.get_map()[tile[0]][tile[1]] is None:
+        # print('fail1')
+        return False 
+    the_tile = game_state.get_map()[tile[0]][tile[1]]
+    if the_tile.state != TileState.TERRAFORMABLE and the_tile.state != TileState.MINING:
+        # print('fail2')
+        return False
+    adjacents, _ = get_adj_tiles(tile, game_state)
+    for adj in adjacents:
+        if game_state.get_map()[adj[0]][adj[1]] is None or game_state.get_map()[adj[0]][adj[1]].state == TileState.ILLEGAL:
+            # print('success1')
+            return True
+    # print('fail4')
+    return False
+
+def find_fog(game_state, bot_row, bot_col, fog_frontier):
+    # # print(f"Looking at bot on {bot_row, bot_col}")
     # find a nearby fog
-    known_tiles, unknown_tiles = get_explored_unexplored(game_state)
-    # edge_tiles_dist = dict()
-    # edge_tiles_move_dirs = dict()
-    if len(unknown_tiles) == 0:
-        raise Exception("No unknown tiles")
     min_dist = None
     best_tile = None
     best_dir = None
-    for tile in known_tiles:
-        adjacents, _ = get_adj_tiles(tile, game_state)
-        for adj in adjacents:
-            if adj in unknown_tiles:
-                # dist = max(abs(bot_row - tile[0]), abs(bot_col - tile[1]))
-                dist = score_tile(game_state, bot_row, bot_col, tile[0], tile[1])
-                # print(tile, adj, dist)
-                if game_state.get_str_map()[tile[0]][tile[1]] == 'I':
-                    continue
-                if min_dist == None or dist < min_dist:
-                    min_dist = dist
-                    best_tile = tile
-    # print(best_tile)
+    
+    start = time.time()
+    # edge_tiles_dist = dict()
+    # edge_tiles_move_dirs = dict()
+    start2 = time.time()
+    adjacent_time = 0
+    score_time = 0
+    # print('fog-frontier', fog_frontier)
+    discard_tiles = []
+    for tile in fog_frontier:
+        # print('tilea', tile)
+        start3 = time.time()
+        if check_is_fog_frontier(game_state, tile):
+            # print('TRUEA')
+            # fog_frontier.add(tile)
+            start4 = time.time()
+            dist = score_tile(game_state, bot_row, bot_col, tile[0], tile[1])
+            # print('dist', dist)
+            score_time += time.time() - start4
+            # # print(tile, adj, dist)
+            if min_dist == None or dist < min_dist:
+                min_dist = dist
+                best_tile = tile
+        else:
+            # print('FALSEA')
+            discard_tiles.append(tile)
+        # print("after else")
+    for dtile in discard_tiles:
+        fog_frontier.discard(dtile)
+    # print('find fog for loop', time.time() - start2)
+    # print('best_tile', best_tile)
     best_dir = game_state.optimal_path(
         bot_row, bot_col, best_tile[0], best_tile[1], checkCollisions=True)[0]
+    # print('find_fog', time.time() - start)
+    # print('adjacent time', adjacent_time)
+    # print('score time', score_time)
     return best_tile, best_dir, min_dist
+            
 
 def score_tile(game_state, bot_row, bot_col, tile_row, tile_col):
     penalty_multiplier = .05
@@ -666,7 +719,7 @@ def get_adj_tiles(tile, game_state):
         if (0 <= new_tile[0] < width) and (0 <= new_tile[1] < height):
             dest_locs.append(new_tile)
             valid_dirs.append(move_dir)
-    # print(tile, dest_locs)
+    # # print(tile, dest_locs)
     return dest_locs, valid_dirs
 
 def get_explored_unexplored(game_state):
