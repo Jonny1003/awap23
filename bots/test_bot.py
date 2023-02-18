@@ -52,7 +52,7 @@ class BotPlayer(Player):
             bots = []
             for rname, rob in game_state.get_ally_robots().items():
                 if rob.type != RobotType.EXPLORER:
-                    bots.append((rname, rob))
+                    bots.append(rob)
             oldmine_strategy(bots, params)
         else:
 
