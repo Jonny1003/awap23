@@ -6,7 +6,7 @@ from src.player import Player
 from src.map import TileInfo, RobotInfo
 import random
 
-def explore(game_state: GameState, bot_list : List (), param_dict):
+def explore(game_state: GameState, bot_list, param_dict):
   game_info = game_state.get_info()
   ally_robots = game_state.get_ally_robots()
   enemy_robots = game_state.get_enemy_robots()
