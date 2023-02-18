@@ -541,8 +541,13 @@ def get_nearby_directions(current_dir):
 # }
 
 def explore(game_state: GameState, bot_list, param_dict):
-    forward_prob = 0.9
     explorer = bot_list[0]
+    if explorer.battery < 10:
+        dir_to_base = game_state.robot_to_base(explorer.name, checkCollisions=True)[0]
+        if dir_to_base is not None and game_state.can_move_robot(explorer.name, dir_to_base):
+                game_state.move_robot(explorer.name, dir_to_base)
+        return
+    forward_prob = 0.9
     prev_moves = param_dict['prev_moves']
     directions = get_possible_directions(game_state, explorer, prev_moves)
     print(explorer.name)
