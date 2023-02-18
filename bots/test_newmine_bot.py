@@ -3,7 +3,7 @@ from src.game_state import GameState, GameInfo
 from src.player import Player
 from src.map import TileInfo, RobotInfo
 import random
-from bots.newmin import oldmine_strategy
+from bots.newmine_strategy import newmine_strategy
 
 class BotPlayer(Player):
     """
@@ -27,7 +27,7 @@ class BotPlayer(Player):
         print("Map height", height)
         print("Map width", width)
 
-        # find un-ocupied ally tile
+        # find un-occupied ally tile
         ally_tiles = []
         # find mine tiles
         mine_tiles = []
@@ -53,7 +53,7 @@ class BotPlayer(Player):
             for rname, rob in game_state.get_ally_robots().items():
                 if rob.type != RobotType.EXPLORER:
                     bots.append(rob)
-            oldmine_strategy(bots, params)
+            newmine_strategy(bots, params)
         else:
 
             print("Ally tiles", ally_tiles)
