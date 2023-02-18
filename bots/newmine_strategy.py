@@ -68,9 +68,10 @@ def newmine_strategy(bots, params):
     # print(aroundMine)
     # Filter out only locations that we may want to move to
     for loc in aroundMine:
-        tile = map[loc[0]][loc[1]]
-        if tile != None and tile.terraform < 2 and tile.robot is None and tile.state != TileState.IMPASSABLE:
-            terraSquares.append(loc)
+        if 0 <= loc[0] and loc[0] < len(map) and 0 <= loc[1] and loc[1] < len(map[0]):
+            tile = map[loc[0]][loc[1]]
+            if tile != None and tile.terraform < 2 and tile.robot is None and tile.state != TileState.IMPASSABLE:
+                terraSquares.append(loc)
     for botName, bot in fueled_terra_bots:
         # print(loc[0], loc[1])
         # print(map[bot.row][bot.col].terraform)
