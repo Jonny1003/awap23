@@ -14,7 +14,7 @@ def newmine_strategy(bots, params):
     mine_loc = params.get('mine_location')
     def noCollision(rob, dir):
         dest_loc = (rob.row + dir.value[0], rob.col + dir.value[1])
-        return game_state.check_for_collision(dest_loc[0], dest_loc[1])
+        return game_state.check_for_collision(dest_loc[0], dest_loc[1]) == None
 
     fueled_mine_bots = []
     tired_bots = []
@@ -34,7 +34,7 @@ def newmine_strategy(bots, params):
         if steps <= 0:
             pass # sadge... do nothing
         else:
-            if game_state.can_move_robot(botName, dir):
+            if game_state.can_move_robot(botName, dir) and noCollision(bot, dir):
                 game_state.move_robot(botName, dir)
 
     # Route the mine bots so that at least one is mining each turn
@@ -43,6 +43,7 @@ def newmine_strategy(bots, params):
         if game_state.can_robot_action(botName):
             game_state.robot_action(botName)
             hasMiner = True
+            print("Mining", bot)
         else:
             dir, steps = game_state.optimal_path(
                 bot.row, bot.col, mine_loc[0], mine_loc[1])
@@ -60,20 +61,19 @@ def newmine_strategy(bots, params):
                 # Get near mine if possible
                 if game_state.can_move_robot(botName, dir):
                     game_state.move_robot(botName, dir)
-            # Otherwise, don't move miner (let it rest)
+
     # Route these bots around the mine location
     aroundMine = [(mine_loc[0] + d.value[0], mine_loc[1] + d.value[1]) for d in Direction]
     terraSquares = []
-    print(aroundMine)
+    # print(aroundMine)
     # Filter out only locations that we may want to move to
     for loc in aroundMine:
         tile = map[loc[0]][loc[1]]
         if tile != None and tile.terraform < 2 and tile.robot is None and tile.state != TileState.IMPASSABLE:
             terraSquares.append(loc)
-    print(terraSquares)
     for botName, bot in fueled_terra_bots:
         # print(loc[0], loc[1])
-        print(map[bot.row][bot.col].terraform)
+        # print(map[bot.row][bot.col].terraform)
         if (bot.row, bot.col) in aroundMine and map[bot.row][bot.col].terraform < 2:
             # stay on square
             if game_state.can_robot_action(botName):
@@ -86,7 +86,6 @@ def newmine_strategy(bots, params):
                 if dist < bestDist:
                     bestDist = dist
                     bestLoc = loc
-            print(bestLoc)
             if bestLoc != None:
                 terraSquares.remove(bestLoc)
                 # Route to this square
