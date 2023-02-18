@@ -22,8 +22,11 @@ def win_now_strategy(bots, params):
         return dest_tile.robot is None
 
     # TODO: TUNE LOWER IF SLOW
+    MAX_NUM_ITERS = 5
     change = 1
-    while change > 0:
+    i = 0
+    while change > 0 and i < MAX_NUM_ITERS:
+        i += 1
         botsToMove = []
         leftoverBots = []
         for bot in bots:
@@ -79,8 +82,8 @@ def win_now_strategy(bots, params):
     for bot in bots:
         if (game_state.can_robot_action(bot.name)):
             game_state.robot_action(bot.name)
-        else:
-            dir, _ = game_state.robot_to_base(bot.name)
-            if dir:
-                game_state.move_robot(bot.name, dir)
-            # Do nothing...
+        # else:
+        #     dir, _ = game_state.robot_to_base(bot.name)
+        #     if dir:
+        #         game_state.move_robot(bot.name, dir)
+        #     # Do nothing...
