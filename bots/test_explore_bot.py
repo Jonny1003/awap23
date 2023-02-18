@@ -125,19 +125,29 @@ class BotPlayer(Player):
                 dir_to_base = game_state.robot_to_base(terr_name, checkCollisions=True)[0]
                 game_state.move_robot(terr_name, dir_to_base)
             else:
-                terr_opt_dir, terr_dist = game_state.optimal_path(
-                    terr_row, terr_col, adjacent_fog[0], adjacent_fog[1], checkCollisions=True)
-                # only move terraformer if it's farther from the destination than the explorer
-                # if terr_dist > exp_dist:
-                # check if we can move in this direction
-                if game_state.can_move_robot(terr_name, terr_opt_dir):
-                    # try to not collide into robots from our team
-                    dest_loc = (
-                        terr_row + terr_opt_dir.value[0], terr_col + terr_opt_dir.value[1])
-                    dest_tile = game_state.get_map()[dest_loc[0]][dest_loc[1]]
+                terr_move_options, _ = self.get_adj_tiles((terr_row, terr_col), game_state)
+                terr_dest = None
+                for tile_option in terr_move_options:
+                    tile_obj = game_state.get_map()[tile_option[0]][tile_option[1]]
+                    if tile_obj is None:
+                        continue
+                    if tile_obj.robot is None:
+                        terr_dest = tile_option
+                        break
+                if terr_dest is not None:
+                    terr_opt_dir, terr_dist = game_state.optimal_path(
+                        terr_row, terr_col, terr_dest[0], terr_dest[1], checkCollisions=True)
+                    
+                    # only move terraformer if it's farther from the destination than the explorer
+                    # check if we can move in this direction
+                    if game_state.can_move_robot(terr_name, terr_opt_dir):
+                        # try to not collide into robots from our team
+                        dest_loc = (
+                            terr_row + terr_opt_dir.value[0], terr_col + terr_opt_dir.value[1])
+                        dest_tile = game_state.get_map()[dest_loc[0]][dest_loc[1]]
 
-                    if dest_tile.robot is None or dest_tile.robot.team != terraformer.team:
-                        game_state.move_robot(terr_name, terr_opt_dir)
+                        if dest_tile.robot is None:
+                            game_state.move_robot(terr_name, terr_opt_dir)
     
         # TAKE ACTIONS
         if game_state.can_robot_action(exp_name):
@@ -162,13 +172,13 @@ class BotPlayer(Player):
             for adj in adjacents:
                 if adj in unknown_tiles:
                     dist = max(abs(bot_row - tile[0]), abs(bot_col - tile[1]))
-                    print(tile, adj, dist)
+                    # print(tile, adj, dist)
                     if game_state.get_str_map()[tile[0]][tile[1]] == 'I':
                         continue
                     if min_dist == None or dist < min_dist:
                         min_dist = dist
                         best_tile = tile
-        print(best_tile)
+        # print(best_tile)
         best_dir = game_state.optimal_path(
             bot_row, bot_col, best_tile[0], best_tile[1], checkCollisions=True)[0]
         return best_tile, best_dir, min_dist
