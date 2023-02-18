@@ -3,4 +3,7 @@
 !example_bot.py
 !oldmine_strategy.py
 !explore_strategy.py
+!test_bot.py
 !test_explore_bot.py
+!test_newmine_bot.py
+!newmine_strategy.py
