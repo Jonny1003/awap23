@@ -21,10 +21,10 @@ def oldmine_strategy(bots, params):
     mine_bots = []
     terra_bots = []
     for bot in bots:
-        if bot[1].type == RobotType.MINER:
-            mine_bots.append(bot)
-        elif bot[1].type == RobotType.TERRAFORMER:
-            terra_bots.append(bot)
+        if bot.type == RobotType.MINER:
+            mine_bots.append((bot.name,bot))
+        elif bot.type == RobotType.TERRAFORMER:
+            terra_bots.append((bot.name,bot))
         else:
             assert(0 and "oldmine_strategy cannot handle EXPLORER bots")
     # print(len(mine_bots))
