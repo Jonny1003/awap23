@@ -54,7 +54,7 @@ def win_now_strategy(bots, params):
                             # Sadge...
                             pass
                         else:
-                            print("here")
+                            # print("here")
                             game_state.move_robot(bot.name, dir)
                             if game_state.can_robot_action(bot.name):
                                 game_state.robot_action(bot.name)
@@ -67,11 +67,11 @@ def win_now_strategy(bots, params):
                                 seen.add(newRC)
                                 queue.append(newRC)
             if not idealPath:
-                print("ending")
+                # print("ending")
 
                 # Make a random legal move
                 for dir in Direction:
-                    print(bot, dir)
+                    # print(bot, dir)
                     if game_state.can_move_robot(bot.name, dir) and noCollisions(bot, dir):
                         game_state.move_robot(bot.name, dir)
                         break

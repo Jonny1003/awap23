@@ -43,7 +43,7 @@ def newmine_strategy(bots, params):
         if game_state.can_robot_action(botName):
             game_state.robot_action(botName)
             hasMiner = True
-            print("Mining", bot)
+            # print("Mining", bot)
         else:
             dir, steps = game_state.optimal_path(
                 bot.row, bot.col, mine_loc[0], mine_loc[1])
