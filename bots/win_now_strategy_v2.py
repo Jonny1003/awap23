@@ -27,11 +27,11 @@ def win_now_strategy(bots, params):
         botsToMove = []
         leftoverBots = []
         for bot in bots:
+            myTile = game_state.get_map()[bot.row][bot.col]
             bestNegTerra = -10
             bestPosTerra = 10
             dir = None
-            notPositive = False
-            myTile = game_state.get_map()[bot.row][bot.col]
+            positive = myTile.terraform > 0
             for d in Direction:
                 row = bot.row + d.value[0]
                 col = bot.col + d.value[1]
@@ -45,17 +45,18 @@ def win_now_strategy(bots, params):
                             and tile.terraform > 0):
                             # Locally found a place to recharge
                             dir = d
-                        elif (tile.terraform <= 0
-                            and tile.terraform >= bestNegTerra
-                            and ((myTile.terraform <= 0 and tile.terraform > myTile.terraform) or myTile.terraform > 0)):
-                            dir = d
-                            bestNegTerra = tile.terraform
-                            notPositive = True
-                        elif (not notPositive and tile.terraform > 0
-                            and tile.terraform <= bestPosTerra
-                            and tile.terraform < myTile.terraform):
-                            dir = d
-                            bestPosTerra = tile.terraform
+                        elif (bot.battery >= bot.action_cost):
+                            if (tile.terraform <= 0
+                                and tile.terraform >= bestNegTerra
+                                and ((myTile.terraform <= 0 and tile.terraform > myTile.terraform) or myTile.terraform > 0)):
+                                dir = d
+                                bestNegTerra = tile.terraform
+                                positive = False
+                            if (positive and tile.terraform > 0
+                                and tile.terraform <= bestPosTerra
+                                and tile.terraform < myTile.terraform):
+                                dir = d
+                                bestPosTerra = tile.terraform
             if dir is not None:
                 botsToMove.append((bot, dir))
             else:
